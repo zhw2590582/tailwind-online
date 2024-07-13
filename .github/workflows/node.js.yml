@@ -26,12 +26,20 @@ jobs:
 
       - name: Deploy to GitHub Pages
         if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          # 删除旧的gh-pages目录
+          rm -rf gh-pages
+          # 从gh-pages分支创建一个新的工作树
+          git worktree add -B gh-pages gh-pages origin/gh-pages
+          # 同步构建后的文件到新的工作树，排除node_modules和.git目录
+          rsync -av --exclude='node_modules' --exclude='.git' ./ gh-pages/
+          cd gh-pages
           git add .
           git commit -m 'Deploy to GitHub Pages'
-          git subtree split --prefix . -b gh-pages-temp
-          git push origin gh-pages-temp:gh-pages --force
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git push origin gh-pages --force
+          cd ..
+          git worktree remove gh-pages --force
