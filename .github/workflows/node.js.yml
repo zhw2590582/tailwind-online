@@ -24,9 +24,6 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Remove node_modules directory
-        run: rm -rf node_modules
-
       - name: Deploy to GitHub Pages
         if: success()
         run: |
