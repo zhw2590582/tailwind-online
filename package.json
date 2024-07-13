@@ -1,0 +1,16 @@
+{
+    "name": "tailwind-online",
+    "version": "1.1.0",
+    "type": "module",
+    "private": true,
+    "description": "Tailwind CSS Online Tool",
+    "scripts": {
+        "build": "node ./build.js"
+    },
+    "dependencies": {
+        "jsdom": "^24.1.0"
+    },
+    "engines": {
+        "node": ">= 20.0.0"
+    }
+}
