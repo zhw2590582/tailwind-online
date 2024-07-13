@@ -31,10 +31,12 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          # 删除旧的gh-pages目录
-          rm -rf gh-pages
-          # 从gh-pages分支创建一个新的工作树
-          git worktree add -B gh-pages gh-pages origin/gh-pages
+          # 检查gh-pages分支是否存在
+          if git show-ref --quiet refs/heads/gh-pages; then
+            git worktree add -B gh-pages gh-pages origin/gh-pages
+          else
+            git worktree add -B gh-pages gh-pages
+          fi
           # 同步构建后的文件到新的工作树，排除node_modules和.git目录
           rsync -av --exclude='node_modules' --exclude='.git' ./ gh-pages/
           cd gh-pages
