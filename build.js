@@ -22,19 +22,84 @@ async function getPreflight() {
   return text;
 }
 
-async function getCss(url) {
+const overwrite = {
+  Container: {
+    name: "container",
+    value: "width: 100%;",
+    css: `
+.container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    max-width: 640px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px;
+  }
+}
+
+@media (min-width: 1536px) {
+  .container {
+    max-width: 1536px;
+  }
+}    
+    `,
+  },
+};
+
+async function getCss(url, subcategory) {
+  const find = overwrite[subcategory];
+  if (find) {
+    styles.push(find.css);
+    return find;
+  }
+
   const res = await fetch(`${tailwind}${url}`);
   const text = await res.text();
   const dom = new JSDOM(text);
   const document = dom.window.document;
   const $trs = [...document.querySelectorAll("#class-table tbody tr")];
-  return $trs.map((style) => {
-    const [name, value] = style.children;
-    const key = name.textContent.trim();
-    const val = value.textContent.trim().replace(/\/\*.*?\*\//g, "");
-    const css = `.${key} { ${val} }`;
+
+  return $trs.map(({ children }) => {
+    const name = children[0].textContent.trim();
+    const value = children[1].textContent.trim();
+
+    const key = name
+      .replace(/\//g, "\\/")
+      .replace(/\./g, "\\.")
+      .replace(/%/g, "\\%");
+
+    const val = value.replace(/\/\*.*?\*\//g, "").replace(/\n/g, " ");
+    const css = overwrite[name] || `.${key} { ${val} }`;
+
     styles.push(css);
-    return { name: key, value: val, css };
+
+    return {
+      name: name,
+      value: val,
+      css,
+    };
   });
 }
 
@@ -45,6 +110,10 @@ async function build() {
   const document = dom.window.document;
 
   const version = document.querySelector("[data-headlessui-state]").textContent;
+
+  console.log(version);
+
+  const preflight = await getPreflight();
 
   const $categories = [...document.querySelectorAll("#nav h5")].filter(
     (category) => !excludes.includes(category.textContent.trim())
@@ -67,19 +136,15 @@ async function build() {
       const url = link.getAttribute("href");
       const subcategory = link.textContent.trim();
       console.log(subcategory);
-      const css = await getCss(url);
-      console.log(css);
       item.children.push({
         name: subcategory,
         url: url,
-        css: css,
+        css: await getCss(url, subcategory),
       });
     }
 
     data.push(item);
   }
-
-  const preflight = await getPreflight();
 
   fs.writeFileSync(
     path.resolve("./tailwind.json"),

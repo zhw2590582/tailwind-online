@@ -9,7 +9,15 @@
 </head>
 
 <body>
-    <script src="./index.js"></script>
+    <script>
+        async function load() {
+            const res = await fetch('./tailwind.json');
+            const data = await res.json();
+            console.log(data);
+        }
+
+        load();
+    </script>
 </body>
 
 </html>
