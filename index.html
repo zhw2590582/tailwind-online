@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 
 <head>
     <meta charset="UTF-8">
@@ -8,43 +8,19 @@
     <link rel="stylesheet" href="./tailwind.css">
 </head>
 
-<body>
-    <div id="app"></div>
+<body class="h-full text-white">
+    <div id="app" class="bg-slate-900 h-full">
+        {{ version }}
+    </div>
+    <script src="./vue.global.js"></script>
     <script>
-        const $app = document.getElementById('app');
-
-        async function load() {
+        (async function init() {
             const res = await fetch('./tailwind.json');
             const json = await res.json();
-            return json;
-        }
-
-        async function init() {
-            const { data, preflight, version } = await load();
-            const html = [];
-            html.push(`<h1 class="text-2xl font-bold">Tailwind CSS ${version}</h1>`);
-            html.push(`<h2 class="text-xl font-bold">Preflight</h2>`);
-
-            for (let i = 0; i < data.length; i++) {
-                const { children, name } = data[i];
-                const subcategory = [];
-                subcategory.push(`<h2 class="text-xl font-bold">${name}</h2>`);
-                for (let j = 0; j < children.length; j++) {
-                    const element = children[j];
-                    subcategory.push(`<h2 class="text-xl font-bold">${element.name}</h2>`);
-                    for (let k = 0; k < element.css.length; k++) {
-                        const subelement = element.css[k];
-                        subcategory.push(`<h3 class="text-lg font-bold">${subelement.name}</h3>`);
-                        subcategory.push(`<pre class="bg-gray-100 p-2">${subelement.value}</pre>`);
-                    }
-                }
-                html.push(subcategory.join(''));
-            }
-
-            $app.innerHTML = html.join('');
-        }
-
-        init();
+            Vue.createApp({
+                data: () => json,
+            }).mount('#app')
+        })();
     </script>
 </body>
 
